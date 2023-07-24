@@ -1,19 +1,15 @@
 from piapy import PiaVpn
+import random
 import time
+import logging
 import requests
-from rocketry import Rocketry
-from rocketry.conds import every
-app = Rocketry()
+logging.basicConfig(filename='logs', filemode='a', format='%(levelname)s - %(message)s')
+logger=logging.getLogger() #Criando um objeto que salva todosos tipos de log
+logger.setLevel(logging.DEBUG) 
+formatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
+                              "%H:%M:%S")
+logger.info("Esta  é uma informação de logging")
 
-#Instanciando
-vpn = PiaVpn()
-
-#clr
-
-#Criando regra de execução agendada
-@app.task('every 10 mins', execution='main')
-def Iniciar():
-    refresh()
 
 
 def obter_endereco_ip_publico():
@@ -24,20 +20,39 @@ def obter_endereco_ip_publico():
 
 
 
+vpn =  PiaVpn() #Instanciando a VPN
+status = vpn.status() #Checar status atual da PIAVPN
+input_minutos = int(input("Digite quantos minutos o programa deve fazer as alterações: "))
+waiting_time = input_minutos * 60 #Variável usada para armazenar o valor em segundos que será passado posteriormente como parâmetro da biblioteca time
+regions = ['us-vermont', 'us-maine', 'us-florida', 'us-atlanta', 'us-kentucky', 'us-baltimore', 'us-massachusetts','us-new-hampshire', 'us-south-carolina','us-east','us-tennessee','us-connecticut','us-wilmington', 'us-pennsylvania', 'us-alabama','us-virginia']
+if status == 'Connected':
+    vpn.disconnect()
+    time.sleep(5)
 
-
-#Função principal que é chamada a cada 10 minutos para obter um novo IP
-def refresh():
+while True:
     horario_atual = time.strftime("%H:%M:%S")
-    print(f'{horario_atual} - Reiniciando o IP...')
+    print(f"{horario_atual} - Mudando localização...")
+    time.sleep(1)
+    chosen_region = random.choice(regions)
+    horario_atual = time.strftime("%H:%M:%S")
+    print(f'{horario_atual} - A região escolhida foi: ' + chosen_region)
+    logging.info('A VPN FOI CONECTADA EM: ' + chosen_region)
+    vpn.set_region(chosen_region)
+    vpn.connect()
+    status = vpn.status()
+    if status == "Connected":
+        horario_atual = time.strftime("%H:%M:%S")
+        print(f"{horario_atual} - VPN CONECTADA")
+        endereco_ip_publico = obter_endereco_ip_publico()
+        horario_atual = time.strftime("%H:%M:%S")
+        print(f"{horario_atual} - O IP atual é: {endereco_ip_publico}")
+    time.sleep(waiting_time)
+    horario_atual = time.strftime("%H:%M:%S")
+    print(f"{horario_atual} - Aguardando {input_minutos} minutos até a próxima troca")
     vpn.disconnect()
     time.sleep(10)
-    vpn.connect()
-    time.sleep(5)
-    endereco_ip_publico = obter_endereco_ip_publico()
-    horario_atual = time.strftime("%H:%M:%S")
-    print(f'{horario_atual} - Seu IP atual é: {endereco_ip_publico}')
+    status = vpn.status()
+    if status == "Disconnected":
+        logging.info("A VPN FOI DESCONECTADA")
 
 
-
-app.run()
