@@ -22,6 +22,8 @@ def obter_endereco_ip_publico():
 
 vpn =  PiaVpn() #Instanciando a VPN
 status = vpn.status() #Checar status atual da PIAVPN
+print("1 - Modo normal \n2 - Modo dinâmico")
+chosen_mode = input("Escolha o modo de troca de IP: ")
 input_minutos = int(input("Digite quantos minutos o programa deve fazer as alterações: "))
 waiting_time = input_minutos * 60 #Variável usada para armazenar o valor em segundos que será passado posteriormente como parâmetro da biblioteca time
 regions = ['us-vermont', 'us-maine', 'us-florida', 'us-atlanta', 'us-kentucky', 'us-baltimore', 'us-massachusetts','us-new-hampshire', 'us-south-carolina','us-east','us-tennessee','us-connecticut','us-wilmington', 'us-pennsylvania', 'us-alabama','us-virginia']
@@ -29,7 +31,7 @@ if status == 'Connected':
     vpn.disconnect()
     time.sleep(5)
 
-while True:
+while chosen_mode == "2":
     horario_atual = time.strftime("%H:%M:%S")
     print(f"{horario_atual} - Mudando localização...")
     time.sleep(1)
@@ -54,5 +56,30 @@ while True:
     status = vpn.status()
     if status == "Disconnected":
         logging.info("A VPN FOI DESCONECTADA")
+while chosen_mode == "1":
+    horario_atual = time.strftime("%H:%M:%S")
+    print(f"{horario_atual} - Mudando o IP...")
+    vpn.disconnect()
+    time.sleep(3)
+    vpn.connect(timeout=20)
+    status = vpn.status()
+    if status == "Connected":
+        horario_atual = time.strftime("%H:%M:%S")
+        print(f"{horario_atual} - VPN CONECTADA")
+        endereco_ip_publico = obter_endereco_ip_publico()
+        print(f"{horario_atual} - O IP atual é: {endereco_ip_publico}")
+        time.sleep(waiting_time)
+    elif status == "Connecting":
+        vpn.disconnect()
+        time.sleep(5)
+        vpn.connect(20)
+        time.sleep(waiting_time)
+    else:
+        vpn.connect(timeout=30)
+        horario_atual = time.strftime("%H:%M:%S")
+        print(f"{horario_atual} - VPN CONECTADA")
+        endereco_ip_publico = obter_endereco_ip_publico()
+        print(f"{horario_atual} - O IP atual é: {endereco_ip_publico}")
+        time.sleep(waiting_time)
 
 
