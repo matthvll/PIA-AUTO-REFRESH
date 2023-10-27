@@ -1,2 +1,2 @@
 # PIA-AUTO-REFRESH
- Um "trocador" de IP básico da PIA VPN, com execução automática a cada 10 minutos
+PIA VPN Auto Refresh. Change your Location or IP automatically every determinate minute.
